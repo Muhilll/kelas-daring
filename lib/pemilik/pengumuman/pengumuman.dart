@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:kelas_daring/endpoint.dart';
+import 'package:kelas_daring/endpointFile.dart';
 import 'package:kelas_daring/pemilik/pengumuman/buat-pengumuman.dart';
 import 'package:kelas_daring/pemilik/pengumuman/edit-pengumuman.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PengumumanPage extends StatefulWidget {
   final int id;
@@ -17,7 +19,8 @@ class _PengumumanPageState extends State<PengumumanPage> {
   List<Pengumuman> dataPengumuman = [];
 
   Future<List<Pengumuman>> fetchPengumuman(BuildContext context) async {
-    final String url = EndPoint.url+'pemilik/get-pengumuman?id=${widget.id.toString()}';
+    final String url =
+        EndPoint.url + 'pemilik/get-pengumuman?id=${widget.id.toString()}';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -57,7 +60,7 @@ class _PengumumanPageState extends State<PengumumanPage> {
   }
 
   void hapusPengumuman(BuildContext context, int id) {
-    String url = EndPoint.url+'hapus-pengumuman?id=' + id.toString();
+    String url = EndPoint.url + 'hapus-pengumuman?id=' + id.toString();
     try {
       http.delete(Uri.parse(url));
       setState(() {
@@ -100,7 +103,7 @@ class _PengumumanPageState extends State<PengumumanPage> {
 
   Future<void> updatePengumuman() async {
     final result = await fetchPengumuman(context);
-    if(mounted){
+    if (mounted) {
       setState(() {
         dataPengumuman = result;
       });
@@ -113,81 +116,44 @@ class _PengumumanPageState extends State<PengumumanPage> {
     updatePengumuman();
   }
 
-  void _showBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.announcement, color: Colors.blue),
-                title: const Text('Buat Pengumuman'),
-                onTap: () {
-                  Navigator.pop(context); // Menutup bottom sheet
-                  _navigateToFormBuatPengumuman(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.assignment, color: Colors.green),
-                title: Text('Buat Absen'),
-                onTap: () {
-                  Navigator.pop(context); // Menutup bottom sheet
-                  
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _navigateToFormBuatPengumuman(BuildContext context) async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => FormBuatPengumuman(id: widget.id),
-    ),
-  );
-
-  if (result == true) {
-    updatePengumuman(); // Memperbarui data pengumuman
-  }
-}
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: dataPengumuman.isEmpty
-          ? Center(child: Text('Tidak ada data'))
-          : ListView.builder(
-              itemCount: dataPengumuman.length,
-              itemBuilder: (context, index) {
-                final pengumuman = dataPengumuman[index];
-                return PengumumanItem(
-                  nama: pengumuman.nama,
-                  desk: pengumuman.desk,
-                  id: pengumuman.id,
-                  onEdit: (id) => {editPengumuman(context, id)},
-                  onHapus: (id) => {showKonfirmasiHapus(context, id)},
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showBottomSheet(context),
-        backgroundColor: Colors.blue,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
-      ),
-    );
+        body: dataPengumuman.isEmpty
+            ? Center(child: Text('Tidak ada data'))
+            : ListView.builder(
+                itemCount: dataPengumuman.length,
+                itemBuilder: (context, index) {
+                  final pengumuman = dataPengumuman[index];
+                  return PengumumanItem(
+                    nama: pengumuman.nama,
+                    desk: pengumuman.desk,
+                    materi: EndPointFile.url + pengumuman.file,
+                    id: pengumuman.id,
+                    onEdit: (id) => {editPengumuman(context, id)},
+                    onHapus: (id) => {showKonfirmasiHapus(context, id)},
+                  );
+                },
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FormBuatPengumuman(id: widget.id),
+              ),
+            );
+
+            if (result == true) {
+              updatePengumuman();
+            }
+          },
+          backgroundColor: Colors.blue,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ));
   }
 }
 
@@ -196,27 +162,29 @@ class Pengumuman {
   final int id_kelas;
   final String nama;
   final String desk;
+  final String file;
 
-  Pengumuman({
-    required this.id,
-    required this.id_kelas,
-    required this.nama,
-    required this.desk,
-  });
+  Pengumuman(
+      {required this.id,
+      required this.id_kelas,
+      required this.nama,
+      required this.desk,
+      required this.file});
 
   factory Pengumuman.fromJson(Map<String, dynamic> json) {
     return Pengumuman(
-      id: json['id'],
-      id_kelas: json['id_kelas'],
-      nama: json['nama'],
-      desk: json['desk'],
-    );
+        id: json['id'],
+        id_kelas: json['id_kelas'],
+        nama: json['nama'],
+        desk: json['desk'],
+        file: json['file'] ?? '');
   }
 }
 
 class PengumumanItem extends StatelessWidget {
   final String nama;
   final String desk;
+  final String materi;
   final int id;
   final Function(int id) onEdit;
   final Function(int id) onHapus;
@@ -225,6 +193,7 @@ class PengumumanItem extends StatelessWidget {
       {Key? key,
       required this.nama,
       required this.desk,
+      required this.materi,
       required this.id,
       required this.onEdit,
       required this.onHapus})
@@ -236,7 +205,6 @@ class PengumumanItem extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.all(5),
         width: double.infinity,
-        height: 100,
         child: Stack(
           children: [
             ClipRRect(
@@ -286,14 +254,30 @@ class PengumumanItem extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        desk,
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                  SingleChildScrollView(
+                    child: Text(
+                      desk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  if (materi != EndPointFile.url)
+                    TextButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.cyan),
+                      ),
+                      onPressed: () async {
+                        await launchUrl(
+                          Uri.parse(materi),
+                        );
+                      },
+                      child: const Text(
+                        'Materi',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
                 ],
               ),
             ),

@@ -29,6 +29,7 @@ void clearForm() {
   jurusanController.clear();
   jkelController.clear();
   alamatController.clear();
+  emaILController.clear();
   nohpController.clear();
   passController.clear();
   conPassController.clear();

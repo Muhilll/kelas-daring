@@ -41,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errorrr: $id')),
+        SnackBar(content: Text('Error: $e')),
       );
       rethrow;
     }

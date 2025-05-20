@@ -14,6 +14,8 @@ const List<String> list = <String>[
   'Kewirausahaan'
 ];
 
+String? jur;
+
 final TextEditingController nimController = TextEditingController();
 final TextEditingController namaController = TextEditingController();
 final TextEditingController jurusanController = TextEditingController();
@@ -83,6 +85,7 @@ Future<void> fetchDetailuser(BuildContext context) async {
           nimController.text = userData.nim;
           namaController.text = userData.nama;
           jurusanController.text = userData.jurusan;
+          jur = userData.jurusan;
           jkelController.text = userData.jkel;
           alamatController.text = userData.alamat;
           nohpController.text = userData.no_hp;
@@ -202,7 +205,7 @@ class _EditPageState extends State<EditPage> {
                   onPressed: () {
                     if (nimController.text.isEmpty ||
                         namaController.text.isEmpty ||
-                        jurusanController.text == "0" ||
+                        jurusanController.text == jur ||
                         jkelController.text.isEmpty ||
                         alamatController.text.isEmpty ||
                         nohpController.text.isEmpty) {
@@ -239,7 +242,6 @@ class DropdownMenuExample extends StatefulWidget {
 }
 
 class _DropdownMenuExampleState extends State<DropdownMenuExample> {
-  String dropdownValue = list.first;
 
   @override
   Widget build(BuildContext context) {

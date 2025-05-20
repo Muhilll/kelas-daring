@@ -19,6 +19,31 @@ class _AbsensiAnggotaState extends State<AbsensiAnggota> {
   List<Absensi> dataAbsensi = [];
   late Future<agtKelas> futureAgtKelas;
 
+  bool isBatasTerlambat(String tgl, String batas) {
+    final now = DateTime.now();
+
+    final tglParts = tgl.split('-');
+    final tahun = int.parse(tglParts[0]);
+    final bulan = int.parse(tglParts[1]);
+    final hari = int.parse(tglParts[2]);
+
+    final parts = batas.trim().split(":");
+    final jam = int.parse(parts[0]);
+    final menit = int.parse(parts[1]);
+    final detik = parts.length == 3 ? int.parse(parts[2]) : 0;
+
+    final batasTime = DateTime(
+      tahun,
+      bulan,
+      hari,
+      jam,
+      menit,
+      detik,
+    );
+
+    return now.isAfter(batasTime);
+  }
+
   Future<List<Absensi>> fetchAbsensi(BuildContext context) async {
     final String url =
         EndPoint.url + 'anggota/get-absensi?id_kelas=${widget.id.toString()}';
@@ -139,7 +164,8 @@ class _AbsensiAnggotaState extends State<AbsensiAnggota> {
                           children: [
                             SizedBox(width: 5),
                             ElevatedButton(
-                              onPressed: absensi.sudahAbsen
+                              onPressed: (absensi.sudahAbsen ||
+                                      isBatasTerlambat(absensi.tgl, absensi.batas))
                                   ? null
                                   : () async {
                                       final result = await Navigator.push(
@@ -148,10 +174,11 @@ class _AbsensiAnggotaState extends State<AbsensiAnggota> {
                                           builder: (context) => SubmitKehadiran(
                                             id_absensi: absensi.id,
                                             id_agtkelas: currentAgtKelas!.id,
+                                            batas: absensi.batas,
                                           ),
                                         ),
                                       );
-                                      // Jika result == true, artinya user sudah submit, maka refresh data
+
                                       if (result == true) {
                                         updateAbsensi();
                                       }

@@ -5,7 +5,12 @@ import 'package:kelas_daring/endpoint.dart';
 
 class SubmitKehadiran extends StatefulWidget {
   final int id_absensi, id_agtkelas;
-  const SubmitKehadiran({required this.id_absensi, required this.id_agtkelas, super.key});
+  final String batas;
+  const SubmitKehadiran({
+    required this.id_absensi, 
+    required this.id_agtkelas, 
+    required this.batas,
+    super.key});
 
   @override
   State<SubmitKehadiran> createState() => _SubmitKehadiranState();

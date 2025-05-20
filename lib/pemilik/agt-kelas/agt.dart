@@ -202,7 +202,26 @@ class _AgtPageState extends State<AgtPage> {
           ],
         ),
       ),
-    );
+      // floatingActionButton: FloatingActionButton(
+      //     onPressed: () async {
+      //       // final result = await Navigator.push(
+      //       //   context,
+      //       //   MaterialPageRoute(
+      //       //     builder: (context) => FormBuatPengumuman(id: widget.id),
+      //       //   ),
+      //       // );
+
+      //       // if (result == true) {
+      //       //   updatePengumuman();
+      //       // }
+      //     },
+      //     backgroundColor: Colors.blue,
+      //     child: const Icon(
+      //       Icons.add,
+      //       color: Colors.white,
+      //     ),
+      //   ));
+      );
   }
 }
 

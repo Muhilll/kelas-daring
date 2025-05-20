@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -15,13 +18,29 @@ class EditPengumuman extends StatefulWidget {
 }
 
 class _EditPengumumanState extends State<EditPengumuman> {
+  File? selectedFile;
+
   void clearForm() {
     namaController.clear();
     deskController.clear();
+    selectedFile = null;
+  }
+
+  Future<void> pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'ppt', 'docx', 'pptx'],
+    );
+    if (result != null) {
+      setState(() {
+        selectedFile = File(result.files.single.path!);
+      });
+    }
   }
 
   Future<Pengumuman> fetchDetailPengumuman() async {
-    String url = EndPoint.url+'get-pengumuman-detail?id=' + widget.id.toString();
+    String url =
+        EndPoint.url + 'get-pengumuman-detail?id=' + widget.id.toString();
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -46,21 +65,22 @@ class _EditPengumumanState extends State<EditPengumuman> {
   }
 
   Future<void> editPengumuman(BuildContext context) async {
-    String url = EndPoint.url+'edit-pengumuman';
+    String url = EndPoint.url + 'edit-pengumuman';
+    var request = http.MultipartRequest('POST', Uri.parse(url));
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(<String, String>{
-          'id': widget.id.toString(),
-          'nama': namaController.text,
-          'desk': deskController.text,
-        }),
-      );
+      request.fields['id'] = widget.id.toString();
+      request.fields['nama'] = namaController.text;
+      request.fields['desk'] = deskController.text;
+      if (selectedFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'file',
+          selectedFile!.path,
+        ));
+      }
+
+      final response = await request.send();
+      final responseBody = await http.Response.fromStream(response);
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,7 +88,7 @@ class _EditPengumumanState extends State<EditPengumuman> {
         );
         Navigator.pop(context, true);
       } else {
-        final errorMessage = jsonDecode(response.body)['message'];
+        final errorMessage = jsonDecode(responseBody.body)['message'];
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage)),
         );
@@ -81,9 +101,13 @@ class _EditPengumumanState extends State<EditPengumuman> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     clearForm();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white, size: 27),
@@ -108,46 +132,49 @@ class _EditPengumumanState extends State<EditPengumuman> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    child: TextField(
-                      controller: namaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Pengumuman',
-                        border: OutlineInputBorder(),
-                      ),
+                  TextField(
+                    controller: namaController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Pengumuman',
+                      border: OutlineInputBorder(),
                     ),
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    child: TextField(
-                      controller: deskController,
-                      decoration: const InputDecoration(
-                        labelText: 'Deskripsi',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 5,
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: deskController,
+                    decoration: const InputDecoration(
+                      labelText: 'Deskripsi',
+                      border: OutlineInputBorder(),
                     ),
+                    maxLines: 5,
                   ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (namaController.text.isEmpty ||
-                            deskController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Lengkapi data terlebih dahulu!')),
-                          );
-                        } else {
-                          editPengumuman(context);
-                        }
-                      },
-                      child: const Text(
-                        'Edit',
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: pickFile,
+                    child: const Text('Pilih File'),
+                  ),
+                  if (selectedFile != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'File dipilih: ${selectedFile!.path.split('/').last}',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
                     ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (namaController.text.isEmpty ||
+                          deskController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Lengkapi data terlebih dahulu!')),
+                        );
+                      } else {
+                        editPengumuman(context);
+                      }
+                    },
+                    child: const Text('Simpan'),
                   ),
                 ],
               ),
