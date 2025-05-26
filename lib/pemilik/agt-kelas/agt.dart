@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:kelas_daring/endpoint.dart';
+import 'package:kelas_daring/pemilik/agt-kelas/tambah.dart';
 
 class AgtPage extends StatefulWidget {
   final int id;
@@ -17,7 +18,8 @@ class _AgtPageState extends State<AgtPage> {
   User? pemilik;
 
   Future<User> fetchPemilikKelas(BuildContext context) async {
-    String url = EndPoint.url+'get-pemilik-kelas?id_kelas=' + widget.id.toString();
+    String url =
+        EndPoint.url + 'get-pemilik-kelas?id_kelas=' + widget.id.toString();
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -40,7 +42,8 @@ class _AgtPageState extends State<AgtPage> {
   }
 
   Future<List<Agt>> fetchAgt(BuildContext context) async {
-    final String url = EndPoint.url+'pemilik/get-agt?id=' + widget.id.toString();
+    final String url =
+        EndPoint.url + 'pemilik/get-agt?id=' + widget.id.toString();
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -74,7 +77,7 @@ class _AgtPageState extends State<AgtPage> {
   }
 
   void hapusAgt(BuildContext context, int id) {
-    String url =EndPoint.url+'pemilik/hapus-agt?id=' + id.toString();
+    String url = EndPoint.url + 'pemilik/hapus-agt?id=' + id.toString();
     try {
       http.delete(Uri.parse(url));
       setState(() {
@@ -131,97 +134,97 @@ class _AgtPageState extends State<AgtPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: CustomScrollView(
-          slivers: [
-            SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  const Text(
-                    'Pengajar',
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                  Container(height: 2, color: Colors.blue),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 7),
-                          child: Image.asset('images/owner.png',
-                              width: 40, height: 40),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 9),
-                          child: pemilik == null
-                              ? Container()
-                              : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(pemilik!.nama,
-                                        style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold)),
-                                    Text(pemilik!.no_hp),
-                                  ],
-                                ),
-                        ),
-                      ],
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CustomScrollView(
+            slivers: [
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    const Text(
+                      'Pengajar',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const Text(
-                    'Anggota Kelas',
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                  Container(height: 2, color: Colors.blue),
-                ],
+                    Container(height: 2, color: Colors.blue),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 7),
+                            child: Image.asset('images/owner.png',
+                                width: 40, height: 40),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 9),
+                            child: pemilik == null
+                                ? Container()
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(pemilik!.nama,
+                                          style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold)),
+                                      Text(pemilik!.no_hp),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text(
+                      'Anggota Kelas',
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    ),
+                    Container(height: 2, color: Colors.blue),
+                  ],
+                ),
               ),
-            ),
-            dataAgt.isEmpty
-                ? const SliverFillRemaining(
-                    child: Center(child: Text('Tidak ada data'))
-                  )
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final listAgt = dataAgt[index];
-                        return AgtItem(
-                          nama: listAgt.nama,
-                          no_hp: listAgt.no_hp,
-                          id: listAgt.id,
-                          onHapus: (id) => {showKonfirmasiHapus(context, id)},
-                        );
-                      },
-                      childCount: dataAgt.length,
+              dataAgt.isEmpty
+                  ? const SliverFillRemaining(
+                      child: Center(child: Text('Tidak ada data')))
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final listAgt = dataAgt[index];
+                          return AgtItem(
+                            nama: listAgt.nama,
+                            no_hp: listAgt.no_hp,
+                            id: listAgt.id,
+                            onHapus: (id) => {showKonfirmasiHapus(context, id)},
+                          );
+                        },
+                        childCount: dataAgt.length,
+                      ),
                     ),
-                  ),
-          ],
+            ],
+          ),
         ),
-      ),
-      // floatingActionButton: FloatingActionButton(
-      //     onPressed: () async {
-      //       // final result = await Navigator.push(
-      //       //   context,
-      //       //   MaterialPageRoute(
-      //       //     builder: (context) => FormBuatPengumuman(id: widget.id),
-      //       //   ),
-      //       // );
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TambahAgtPage(id_kelas: widget.id,),
+              ),
+            );
 
-      //       // if (result == true) {
-      //       //   updatePengumuman();
-      //       // }
-      //     },
-      //     backgroundColor: Colors.blue,
-      //     child: const Icon(
-      //       Icons.add,
-      //       color: Colors.white,
-      //     ),
-      //   ));
-      );
+            if (result == true) {
+              updateAgt();
+            }
+          },
+          backgroundColor: Colors.blue,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ));
+    // );
   }
 }
 
