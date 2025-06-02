@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:kelas_daring/endpoint.dart';
+import 'package:kelas_daring/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserDetailKelas extends StatefulWidget {
@@ -39,37 +40,65 @@ class _UserDetailKelasState extends State<UserDetailKelas> {
   }
 
   Future<void> gabungKelas(BuildContext context) async {
-    String url = EndPoint.url + 'gabung-kelas';
     final SharedPreferences prefsIdUser = await SharedPreferences.getInstance();
+    String id_user = prefsIdUser.getString('idUser') ?? '';
 
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
+    if (id_user.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Informasi"),
+            content: const Text(
+                "Anda harus login terlebih dahulu. Ingin login sekarang?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Tidak"),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => LoginPage()));
+                },
+                child: const Text("Ya"),
+              ),
+            ],
+          );
         },
-        body: jsonEncode(<String, String>{
-          'id_kelas': widget.id.toString(),
-          'id_user': prefsIdUser.getString('idUser') ?? '',
-        }),
       );
+    } else {
+      String url = EndPoint.url + 'gabung-kelas';
 
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfull')),
+      try {
+        final response = await http.post(
+          Uri.parse(url),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode(<String, String>{
+            'id_kelas': widget.id.toString(),
+            'id_user': id_user,
+          }),
         );
-        Navigator.pop(context, true);
-      } else {
-        final errorMessage = jsonDecode(response.body)['message'];
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Berhasil bergabung ke kelas')),
+          );
+          Navigator.pop(context, true);
+        } else {
+          final errorMessage = jsonDecode(response.body)['message'];
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
+          SnackBar(content: Text('Gagal: $e')),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: $e')),
-      );
     }
   }
 

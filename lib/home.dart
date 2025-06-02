@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kelas_daring/anggota/kelas/kelas.dart';
+import 'package:kelas_daring/guestLogin.dart';
 import 'package:kelas_daring/user/kelas.dart';
 import 'package:kelas_daring/login_page.dart';
 import 'package:kelas_daring/pemilik/kelas/kelas.dart';
@@ -13,11 +14,25 @@ class HomePages extends StatefulWidget {
 
 class _HomePagesState extends State<HomePages> {
   Widget _currentBody = UserKelasPage();
+  String id_user = '';
 
   void _changePage(Widget newPage) {
     setState(() {
       _currentBody = newPage;
     });
+  }
+
+  Future<void> _loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      id_user = prefs.getString('idUser') ?? '';
+    });
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    _loadUser();
   }
 
   @override
@@ -81,72 +96,97 @@ class _HomePagesState extends State<HomePages> {
                 Navigator.pop(context);
               },
             ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.list_alt_outlined),
-                  Padding(
-                    padding: EdgeInsets.only(left: 15),
-                    child: Text('Kelas Diikuti'),
-                  )
-                ],
-              ),
-              onTap: () {
-                _changePage(KelasPageAnggota());
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.auto_awesome_mosaic_outlined),
-                  Padding(
-                    padding: EdgeInsets.only(left: 15),
-                    child: Text('Kelas Saya'),
-                  )
-                ],
-              ),
-              onTap: () {
-                _changePage(KelasPagePemilik());
-                Navigator.pop(context);
-              },
-            ),
-            Container(
-              width: double.infinity,
-              height: 0.5,
-              color: Colors.black,
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.person_outline),
-                  Padding(
-                    padding: EdgeInsets.only(left: 15),
-                    child: Text('Profile'),
-                  )
-                ],
-              ),
-              onTap: () {
-                _changePage(ProfilePage());
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.logout_outlined),
-                  Padding(
-                    padding: EdgeInsets.only(left: 15),
-                    child: Text('Logout'),
-                  )
-                ],
-              ),
-              // selected: ,
-              onTap: () {
-                logout(context);
-              },
-            ),
-            // Tambahkan menu lain di sini...
+            ...(id_user.isEmpty
+                ? [
+                    Container(
+                      width: double.infinity,
+                      height: 0.5,
+                      color: Colors.black,
+                    ),
+                    ListTile(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.person_outline),
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text('Login'),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()));
+                      },
+                    ),
+                  ]
+                : [
+                    ListTile(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.list_alt_outlined),
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text('Kelas Diikuti'),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        _changePage(KelasPageAnggota());
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.auto_awesome_mosaic_outlined),
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text('Kelas Saya'),
+                          )
+                        ],
+                      ),
+                      onTap: () async {
+                        _changePage(KelasPagePemilik());
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Container(
+                      width: double.infinity,
+                      height: 0.5,
+                      color: Colors.black,
+                    ),
+                    ListTile(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.person_outline),
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text('Profile'),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        _changePage(ProfilePage());
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.logout_outlined),
+                          Padding(
+                            padding: EdgeInsets.only(left: 15),
+                            child: Text('Logout'),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        logout(context);
+                      },
+                    ),
+                  ]),
           ],
         ),
       ),

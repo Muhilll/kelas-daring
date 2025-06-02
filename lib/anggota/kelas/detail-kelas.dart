@@ -7,6 +7,7 @@ import 'package:kelas_daring/anggota/pengumuman/pengumuman.dart';
 import 'package:kelas_daring/anggota/tugas/tugas.dart';
 import 'package:kelas_daring/endpoint.dart';
 import 'package:kelas_daring/pemilik/agt-kelas/agt.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 int id_kelas = 0;
 
@@ -29,7 +30,7 @@ class _DetailKelasAnggotaState extends State<DetailKelasAnggota> {
 
   Future<detailKelas> fetchDetailKelas(BuildContext context) async {
     id_kelas = widget.id;
-    String url = EndPoint.url+'get-kelas-detail?id=' + id_kelas.toString();
+    String url = EndPoint.url + 'get-kelas-detail?id=' + id_kelas.toString();
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -51,6 +52,59 @@ class _DetailKelasAnggotaState extends State<DetailKelasAnggota> {
     }
   }
 
+  Future<void> keluarDariKelas() async {
+    bool konfirmasi = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Konfirmasi"),
+        content: const Text("Apakah kamu yakin ingin keluar dari kelas ini?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("Keluar"),
+          ),
+        ],
+      ),
+    );
+
+    if (!konfirmasi) return;
+
+    try {
+      String url = EndPoint.url + 'out-kelas';
+      final SharedPreferences prefsIdUser =
+          await SharedPreferences.getInstance();
+      String id_user = prefsIdUser.getString('idUser') ?? "";
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id_kelas': id_kelas.toString(),
+          'id_user': id_user,
+        }),
+      );
+
+      final data = json.decode(response.body);
+
+      if (data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Berhasil keluar dari kelas")),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Gagal keluar dari kelas')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +129,9 @@ class _DetailKelasAnggotaState extends State<DetailKelasAnggota> {
             future: fetchDetailKelas(context),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Text('-', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white));
+                return const Text('-',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white));
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
@@ -91,6 +147,21 @@ class _DetailKelasAnggotaState extends State<DetailKelasAnggota> {
               }
             },
           ),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (String value) {
+                if (value == 'keluar') {
+                  keluarDariKelas();
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'keluar',
+                  child: Text('Keluar'),
+                ),
+              ],
+            )
+          ],
         ),
         body: const NavigationExample(),
       ),
@@ -156,11 +227,8 @@ class _NavigationExampleState extends State<NavigationExample> {
       ),
       body: <Widget>[
         PengumumanPageAnggota(id: id_kelas),
-
         AbsensiAnggota(id: id_kelas),
-
         TugasPageAnggota(id: id_kelas),
-        
         AgtPageAnggota(id: id_kelas)
       ][currentPageIndex],
     );

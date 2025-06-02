@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:kelas_daring/endpoint.dart';
+import 'package:kelas_daring/endpointFile.dart';
+import 'package:url_launcher/url_launcher.dart';
 class PengumumanPageAnggota extends StatefulWidget {
   final int id;
   const PengumumanPageAnggota({required this.id, super.key});
@@ -65,6 +67,7 @@ class _PengumumanPageAnggotaState extends State<PengumumanPageAnggota> {
                 return PengumumanItem(
                   nama: pengumuman.nama,
                   desk: pengumuman.desk,
+                   materi: EndPointFile.url + pengumuman.file,
                   id: pengumuman.id,
                 );
               },
@@ -78,12 +81,14 @@ class Pengumuman {
   final int id_kelas;
   final String nama;
   final String desk;
+  final String file;
 
   Pengumuman({
     required this.id,
     required this.id_kelas,
     required this.nama,
     required this.desk,
+    required this.file
   });
 
   factory Pengumuman.fromJson(Map<String, dynamic> json) {
@@ -92,6 +97,7 @@ class Pengumuman {
       id_kelas: json['id_kelas'],
       nama: json['nama'],
       desk: json['desk'],
+      file: json['file'] ?? ''
     );
   }
 }
@@ -99,12 +105,14 @@ class Pengumuman {
 class PengumumanItem extends StatelessWidget {
   final String nama;
   final String desk;
+  final String materi;
   final int id;
 
   const PengumumanItem({
     Key? key,
     required this.nama,
     required this.desk,
+    required this.materi,
     required this.id,
   }) : super(key: key);
 
@@ -114,7 +122,6 @@ class PengumumanItem extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.all(5),
         width: double.infinity,
-        height: 100,
         child: Stack(
           children: [
             ClipRRect(
@@ -136,14 +143,30 @@ class PengumumanItem extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        desk,
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                  SingleChildScrollView(
+                    child: Text(
+                      desk,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  if (materi != EndPointFile.url)
+                    TextButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.cyan),
+                      ),
+                      onPressed: () async {
+                        await launchUrl(
+                          Uri.parse(materi),
+                        );
+                      },
+                      child: const Text(
+                        'Materi',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
                 ],
               ),
             ),

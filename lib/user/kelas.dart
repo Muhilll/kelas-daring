@@ -23,8 +23,12 @@ class _UserKelasPageState extends State<UserKelasPage> {
   Future<List<Kelas>> fetchKelas(BuildContext context) async {
     SharedPreferences prefsIdUser = await SharedPreferences.getInstance();
     String id = prefsIdUser.getString('idUser').toString();
-
-    final String url = EndPoint.url+'user/get-kelas?id=${id}';
+    final String url;
+    if(id.isEmpty){
+      url = EndPoint.url+'guest/get-kelas';
+    }else{
+      url = EndPoint.url+'user/get-kelas?id=${id}';
+    }
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

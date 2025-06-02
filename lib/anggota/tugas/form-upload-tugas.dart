@@ -67,8 +67,10 @@ class _FormUploadTugasState extends State<FormUploadTugas> {
             SnackBar(content: Text(errorMessage)),
           );
         } catch (e) {
+          final errorData = jsonDecode(responseBody);
+          final errorMessage = errorData['message'] ?? 'Terjadi kesalahan';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
+            SnackBar(content: Text('Error: $errorMessage')),
           );
         }
       }

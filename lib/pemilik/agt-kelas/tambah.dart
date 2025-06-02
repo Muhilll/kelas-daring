@@ -19,8 +19,7 @@ class _TambahAgtPageState extends State<TambahAgtPage> {
 
   Future<void> cariUser() async {
     setState(() => isLoading = true);
-    String url = EndPoint.url +
-        'pemilik/get-user/nim?id_kelas=${widget.id_kelas}&nim=${nimController.text}';
+    String url = EndPoint.url +'pemilik/get-user/nim?id_kelas=${widget.id_kelas}&nim=${nimController.text}';
     final response = await http.get(Uri.parse(url));
 
     setState(() => isLoading = false);
