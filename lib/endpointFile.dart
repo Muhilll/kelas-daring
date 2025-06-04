@@ -1,5 +1,5 @@
 class EndPointFile {
 
-  static String url = "http://192.168.232.21:8000/storage/";
+  static String url = "http://192.168.29.21:8000/storage/";
 
 }

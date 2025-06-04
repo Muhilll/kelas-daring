@@ -13,11 +13,32 @@ class KelasPagePemilik extends StatefulWidget {
 }
 
 class _KelasPagePemilikState extends State<KelasPagePemilik> {
-  @override
+  List<Kelas> allKelasList = [];
+  List<Kelas> kelasList = [];
+  TextEditingController _searchController = TextEditingController();
 
+  @override
   void initState() {
     super.initState();
     updateKelas();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+
+  void _onSearchChanged() {
+    String keyword = _searchController.text.toLowerCase();
+    setState(() {
+      kelasList = allKelasList
+          .where((kelas) => kelas.namaKelas.toLowerCase().contains(keyword))
+          .toList();
+    });
   }
 
   Future<List<Kelas>> fetchKelas(BuildContext context) async {
@@ -46,12 +67,11 @@ class _KelasPagePemilikState extends State<KelasPagePemilik> {
     }
   }
 
-  List<Kelas> kelasList = [];
-
   Future<void> updateKelas() async {
     final result = await fetchKelas(context);
     if(mounted){
       setState(() {
+        allKelasList = result;
         kelasList = result;
       });
     }
@@ -61,29 +81,48 @@ class _KelasPagePemilikState extends State<KelasPagePemilik> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: kelasList.isEmpty ? Center(child: Text('Tidak ada data')) : ListView.builder(
-              itemCount: kelasList.length,
-              itemBuilder: (context, index) {
-                final kelas = kelasList[index];
-                return KelasItem(
-                  title: kelas.namaKelas,
-                  namaUser: kelas.pemilik,
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailKelas(
-                          id_kelas: kelas.id,
-                        ),
-                      ),
-                    );
-                    if (result == true) {
-                      updateKelas();
-                    }
-                  },
-                );
-              },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari kelas...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
+          ),
+          Expanded(
+            child: kelasList.isEmpty ? Center(child: Text('Tidak ada data')) : ListView.builder(
+                    itemCount: kelasList.length,
+                    itemBuilder: (context, index) {
+                      final kelas = kelasList[index];
+                      return KelasItem(
+                        title: kelas.namaKelas,
+                        namaUser: kelas.pemilik,
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailKelas(
+                                id_kelas: kelas.id,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            updateKelas();
+                          }
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(

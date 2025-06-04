@@ -1,5 +1,5 @@
 class EndPoint {
 
-  static String url = "http://192.168.232.21:8000/api/";
+  static String url = "http://192.168.29.21:8000/api/";
 
 }
